@@ -1,17 +1,22 @@
 FROM ubuntu:xenial
 MAINTAINER Mario Renau <mario.renau@alstomgroup.com>
 
+ENV DEBIAN_FRONTEND noninteractive
 # Install Oracle Java 8
 ENV JAVA_VER 8
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
-RUN echo 'deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main' >> /etc/apt/sources.list && \
-    echo 'deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main' >> /etc/apt/sources.list && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C2518248EEA14886 && \
+RUN apt-get update
+RUN apt-get -y install software-properties-common
+RUN add-apt-repository ppa:webupd8team/java
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends locales && \
+    locale-gen en_US.UTF-8 && \
+    # apt-get dist-upgrade -y && \
+    apt-get --purge remove openjdk* && \
+    echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections && \
     apt-get update && \
-    echo oracle-java${JAVA_VER}-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections && \
-    apt-get install -y --force-yes --no-install-recommends oracle-java${JAVA_VER}-installer oracle-java${JAVA_VER}-set-default && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists && \
-    rm -rf /var/cache/oracle-jdk${JAVA_VER}-installer
-
+    apt-get install -y --no-install-recommends oracle-java8-installer && \
+    apt-get install oracle-java8-set-default && \
+    apt-get autoremove && \
+    apt-get clean all
